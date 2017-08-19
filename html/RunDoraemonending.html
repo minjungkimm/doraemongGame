@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>End</title>
+<style>
+body{
+margin:0px;
+background-image:url("../images/dora_youdie.png");
+background-size:860px 640px;
+}
+</style>
+<script>
+//게임 오버 화면 setTimeout걸기
+var st;
+function end(){
+
+	st=setTimeout("end()",50);
+	drop = new Audio("../sound/drop.mp3");
+	drop.play();
+	clearTimeout(st);
+}
+</script>
+</head>
+<body onLoad="end()">
+</body>
+</html>

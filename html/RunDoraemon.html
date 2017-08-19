@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>달려라도라에몽</title>
+<style>
+body{margin:0px;}
+#container{
+	width:100%;
+	height:660px; /*고치기*/
+	background:url("../images/dora_bg_2.jpg") repeat-x;
+}
+#point{
+	font-size:45pt;
+	font-weight:bold;
+	position:absolute;
+	left:820px;
+	top:0px;
+}
+</style>
+<script src="../js/Item.js"></script>
+<script src="../js/Hp.js"></script>
+<script src="../js/lib.js"></script>
+<script src="../js/Dora.js"></script>
+<script src="../js/Block.js"></script>
+<script src="../js/GameObject.js"></script>
+<script src="../js/Bread.js"></script>
+<script>
+
+var map = [
+[0,1,0,0,0,1,0,1],
+[1,0,0,0,0,1,0,1],
+[0,1,0,0,0,1,0,1],
+[1,0,0,0,0,1,0,1],
+[0,1,0,0,0,1,0,1],
+[1,0,0,0,0,1,0,1],
+[0,1,0,0,0,1,0,1],
+];
+//도라미의 y값
+var y=0;
+var flag=true;
+var dorami;
+var dora;
+var container;
+var bgX=0;
+var point;
+
+//sound
+var bgm;
+var hit;
+var jumpSound;
+var minus;
+var plus;
+var shoot;
+var drop;
+
+//배열
+var blockArray= new Array(); //박스들의 정보를 담을 배열
+var monsterArray = new Array(); //적군들의 정보를 담을 배열
+var hpArray= new Array(); //hp 정보들을 담을 배열
+var itemArray = new Array(); //아이템을 담을 배열
+
+var bgSt;
+var blSt;
+var hpContainer;//체력 물약을 담는 div
+var count=0;
+var startX=(screen.width-400);
+
+var bl=[
+			["../images/tung.png","monster"],
+			["../images/b.png","monsterr"],
+			["../images/dora_b.png","box"],
+			["../images/blank.png","blank"],
+		   ];
+
+//여기까지 전역변수
+
+function bgMove(){
+	bgX--;
+	container.style.backgroundPosition=bgX+"px 0px";
+
+	bgSt=setTimeout("bgMove()",20)
+}
+
+function blMove(){
+
+	for(var i=0; i<blockArray.length; i++){
+	blockArray[i].img.style.left=parseInt(blockArray[i].img.style.left)-6+"px";
+	}
+
+
+	blSt=setTimeout("blMove()", 80);
+}
+
+
+function createBl(){
+	count++;
+	if(count%100==0){
+		for(var a=0; a<map.length; a++){
+			for(var i=0; i<map[a].length; i++){
+				if(map[a][i]==getRandom(map.length)){
+
+					var m=getRandom(bl.length);
+
+					var blSrc=bl[m][0];
+					var blType=bl[m][1];
+
+					var h=60;
+					var w=60;
+
+					if(blType=="box"){
+						w=60;
+						h=60;
+					}else if(blType=="monster"){
+						w=60
+						h=80;
+					}else if(blType=="monsterr"){
+						w=40;
+						h=75;
+					}
+
+
+					var block= new Block(container, blSrc ,w,h,startX+i*40,a*h+30, blType);
+
+					block.init();
+
+					blockArray.push(block);
+
+				}
+			}
+		}
+	}
+}
+
+
+
+
+function recreateBl(){
+
+	createBl();
+	setTimeout("recreateBl()",30);
+
+}
+
+
+function createDorami(){
+	if(flag){y+=10;}
+	else{y-=10;}
+
+	if(y>=600 || y<=0){flag=!flag;}
+
+	dorami=document.getElementById("dorami");
+	dorami.style.top=y+"px";
+
+	setTimeout("createDorami()",40);
+}
+
+
+
+
+function createDora(){
+	Dora.prototype= new GameObject(container,"../images/dora.png",50,50,80,0);
+
+	dora= new Dora(blockArray,hpContainer);
+
+	dora.init();
+
+	dora.move();
+}
+
+function doraMove(){ //key눌렀을때 작동되는 것들
+	key=event.keyCode;
+
+	if(key==37){//좌측 //이동
+		dora.velX=-3;
+	}
+
+	if(key==39){//우측 //이동
+		dora.velX=3;
+	}
+
+	if(key==32){//스페이스바 //점프
+		dora.velY=-8;
+		dora.jump=true;
+		dora.falling=true;
+
+		jumpSound.pause();
+		jumpSound.currentTime=0;
+		jumpSound.play();
+
+	}
+
+	if(key==13){//엔터 //빵.js 호출, 발사발사
+	var bread= new Bread(container,dora.x,dora.y);
+	bread.init();
+
+	shoot.play();
+
+
+	}
+}
+
+function doraStop(){ //key떼어냈을 때 작동되는 것들
+	dora.velX=0;
+
+}
+
+//상황에 따른 음악들 추가
+function createSound(){
+
+ bgm = new Audio("../sound/bgm.mp3");
+
+ bgm.loop=true;
+ bgm.play(); //배경음악 무한루프
+			//재생시작
+
+ shoot = new Audio("../sound/shoot.snd");
+
+ jumpSound = new Audio("../sound/jump.wav");
+
+ hit = new Audio("../sound/hit.snd");
+
+ plus = new Audio("../sound/plus.snd");
+
+ minus = new Audio("../sound/minus.snd");
+
+ drop = new Audio("../sound/drop.mp3");
+
+}
+
+function dropEffect(){
+	//끝났으니깐 노래,배경끄기
+	bgm.pause();
+
+	clearTimeout(bgSt);
+	clearTimeout(blSt);
+
+	location.href="RunDoraemonending.html";
+
+}
+//초기화면에 뜰 것들 도라에몽, 도라미, 배경, 박스, 빵던지기
+function init(){
+	container=document.getElementById("container");
+	hpContainer=document.getElementById("hpContainer");
+	point=document.getElementById("point");
+	point.innerText="00000";
+
+	bgMove();
+	blMove();
+	createSound();
+	createDorami();
+	createDora();
+	createBl();
+	recreateBl();
+	doraMove();
+	doraStop();
+	dora.removeHp();
+	dora.createHp();
+	getScore();
+}
+
+</script>
+</head>
+<body onLoad="init()" onKeyDown="doraMove()" onKeyUp="doraStop()">
+<div id="container">
+<div id="point"></div>
+</div>
+<img src="../images/dorami.png" id="dorami" style="position:absolute; left:0px; top:0px; width:50px; height:65px;">
+<div id="hpContainer" style="position:absolute;left:80px;top:550px;width:350px;height:70px"></div>
+</body>
+</html>
